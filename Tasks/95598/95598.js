@@ -1619,36 +1619,47 @@ function formatDate(dateStr) {
   var day = dateStr.substring(6, 8);
 
   // 返回格式化的日期字符串
-  return year + '-' + month + (day ? '-' + day  : '');
+  return year + '-' + month + (day ? '-' + day : '');
 }
 // 修改发送mqtt消息至homeassistant
 async function sendMsg(e, eleBill, dayList, monthElecQuantity) {
+  const host =
+    (isNode() ? process.env.WSGW_mqtt_host : store.get('95598_mqtt_host')) || '',
+    port =
+      (isNode() ? process.env.WSGW_mqtt_port : store.get('95598_mqtt_port')) || '',
+    mqtt_username = isTrue(
+      isNode()
+        ? process.env.WSGW_mqtt_username
+        : store.get('95598_mqtt_username')
+    ),
+    mqtt_password = isNode()
+      ? process.env.WSGW_mqtt_password
+      : store.get('95598_mqtt_password');
+
   const mqtt = require('mqtt')
-  const host = '192.168.1.7'
-  const port = '1883'
   const clientId = 'mqtt_qldocker'
-  
+
   const connectUrl = `mqtt://${host}:${port}`
   const client = mqtt.connect(connectUrl, {
     clientId,
     clean: true,
     connectTimeout: 4000,
-    username: 'admin',
-    password: 'mqtt.85410221',
+    username: mqtt_username,
+    password: mqtt_password,
     reconnectPeriod: 1000,
   })
-  
+
   const topic = 'nodejs/state-grid'
   let data = eleBill;
-  dayList = dayList.filter(val=>{
-      return val.dayElePq != '-'
-  }).map(val=>{
-      val.day = formatDate(val.day)
-      return val
+  dayList = dayList.filter(val => {
+    return val.dayElePq != '-'
+  }).map(val => {
+    val.day = formatDate(val.day)
+    return val
   })
-  let monthList = monthElecQuantity.mothEleList.map(val=>{
-      val.month = formatDate(val.month)
-      return val
+  let monthList = monthElecQuantity.mothEleList.map(val => {
+    val.month = formatDate(val.month)
+    return val
   })
   data.dayList = dayList;
   data.monthList = monthList;
@@ -1656,22 +1667,22 @@ async function sendMsg(e, eleBill, dayList, monthElecQuantity) {
   data.totalEleCost = monthElecQuantity.dataInfo.totalEleCost;
   client.on('connect', () => {
     console.log('Connected')
-  //   console.log(data)
+    //   console.log(data)
     client.publish(topic, JSON.stringify(data), { qos: 0, retain: false }, (error) => {
       if (error) {
         console.error(error)
       }
     })
   })
-  
-  setTimeout(()=>{
-      client.end()
-  },5000)
-  
+
+  setTimeout(() => {
+    client.end()
+  }, 5000)
+
   await new Promise((resolve, reject) => {
-      setTimeout(() => resolve("done!"), 5000)
-    });
-  }
+    setTimeout(() => resolve("done!"), 5000)
+  });
+}
 // async function sendMsg(e, o, r, s) {
 //   const n = s?.['open-url'] || s?.openUrl || s?.$open || s?.url,
 //     t = s?.['media-url'] || s?.mediaUrl || s?.$media;
@@ -1740,8 +1751,8 @@ async function sendMsg(e, eleBill, dayList, monthElecQuantity) {
         Number(e.dayElePq) && (a += `\n${e.day}用电: ${e.dayElePq}度⚡`);
       }),
       console.log(monthElecQuantity)
-      // await sendMsg(SCRIPTNAME, '', a);
-      await sendMsg(SCRIPTNAME,eleBill,s, monthElecQuantity);
+    // await sendMsg(SCRIPTNAME, '', a);
+    await sendMsg(SCRIPTNAME, eleBill, s, monthElecQuantity);
   }
 })()
   .catch(e => {
