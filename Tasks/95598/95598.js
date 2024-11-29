@@ -1,3 +1,22 @@
+/******************************************
+ * @name 网上国网🌏
+ * @channel https://t.me/yqc_123/
+ * @feedback https://t.me/NobyDa_Chat
+ * @author 𝒀𝒖𝒉𝒆𝒏𝒈
+ * @update 20240806
+ * @version 1.3.0
+ *****************************************
+ 修改适配homeassistant，发送mqtt消息
+ *****************************************
+脚本声明:
+1. 本脚本仅用于学习研究，禁止用于商业用途
+2. 本脚本不保证准确性、可靠性、完整性和及时性
+3. 任何个人或组织均可无需经过通知而自由使用
+4. 作者对任何脚本问题概不负责，包括由此产生的任何损失
+5. 如果任何单位或个人认为该脚本可能涉嫌侵犯其权利，应及时通知并提供身份证明、所有权证明，我将在收到认证文件确认后删除
+6. 请勿将本脚本用于商业用途，由此引起的问题与作者无关
+7. 本脚本及其更新版权归作者所有
+ ******************************************/
 const getEnv = () =>
   'undefined' != typeof $environment && $environment['surge-version']
     ? 'Surge'
@@ -1462,7 +1481,7 @@ async function getDayElecQuantity(e) {
   try {
     const o = bindInfo.powerUserList[e],
       [r] = bizrt.userInfo,
-      s = getBeforeDate(6),
+      s = getBeforeDate(8),
       n = getBeforeDate(1),
       t = {
         url: `/api${$api.busInfoApi}`,
@@ -1581,28 +1600,88 @@ async function doLogin() {
   await login(o, e);
 }
 async function showNotice() {
-  console.log(''),
-    console.log('1. 本脚本仅用于学习研究，禁止用于商业用途'),
-    console.log('2. 本脚本不保证准确性、可靠性、完整性和及时性'),
-    console.log('3. 任何个人或组织均可无需经过通知而自由使用'),
-    console.log('4. 作者对任何脚本问题概不负责，包括由此产生的任何损失'),
-    console.log(
-      '5. 如果任何单位或个人认为该脚本可能涉嫌侵犯其权利，应及时通知并提供身份证明、所有权证明，我将在收到认证文件确认后删除'
-    ),
-    console.log('6. 请勿将本脚本用于商业用途，由此引起的问题与作者无关'),
-    console.log('7. 本脚本及其更新版权归作者所有'),
-    console.log('');
+  // console.log(''),
+  //   console.log('1. 本脚本仅用于学习研究，禁止用于商业用途'),
+  //   console.log('2. 本脚本不保证准确性、可靠性、完整性和及时性'),
+  //   console.log('3. 任何个人或组织均可无需经过通知而自由使用'),
+  //   console.log('4. 作者对任何脚本问题概不负责，包括由此产生的任何损失'),
+  //   console.log(
+  //     '5. 如果任何单位或个人认为该脚本可能涉嫌侵犯其权利，应及时通知并提供身份证明、所有权证明，我将在收到认证文件确认后删除'
+  //   ),
+  //   console.log('6. 请勿将本脚本用于商业用途，由此引起的问题与作者无关'),
+  //   console.log('7. 本脚本及其更新版权归作者所有'),
+  console.log('');
 }
-async function sendMsg(e, o, r, s) {
-  const n = s?.['open-url'] || s?.openUrl || s?.$open || s?.url,
-    t = s?.['media-url'] || s?.mediaUrl || s?.$media;
-  isNode()
-    ? ((r += n ? `\n点击跳转: ${n}` : ''),
-      (r += t ? `\n多媒体: ${t}` : ''),
-      console.log(`${e}\n${o}\n${r}\n`),
-      await Notify.sendNotify(`${e}\n${o}`, r))
-    : notify(e, o, r, s);
+function formatDate(dateStr) {
+  // 分割日期字符串
+  var year = dateStr.substring(0, 4);
+  var month = dateStr.substring(4, 6);
+  var day = dateStr.substring(6, 8);
+
+  // 返回格式化的日期字符串
+  return year + '-' + month + (day ? '-' + day  : '');
 }
+// 修改发送mqtt消息至homeassistant
+async function sendMsg(e, eleBill, dayList, monthElecQuantity) {
+  const mqtt = require('mqtt')
+  const host = '192.168.1.7'
+  const port = '1883'
+  const clientId = 'mqtt_qldocker'
+  
+  const connectUrl = `mqtt://${host}:${port}`
+  const client = mqtt.connect(connectUrl, {
+    clientId,
+    clean: true,
+    connectTimeout: 4000,
+    username: 'admin',
+    password: 'mqtt.85410221',
+    reconnectPeriod: 1000,
+  })
+  
+  const topic = 'nodejs/state-grid'
+  let data = eleBill;
+  dayList = dayList.filter(val=>{
+      return val.dayElePq != '-'
+  }).map(val=>{
+      val.day = formatDate(val.day)
+      return val
+  })
+  let monthList = monthElecQuantity.mothEleList.map(val=>{
+      val.month = formatDate(val.month)
+      return val
+  })
+  data.dayList = dayList;
+  data.monthList = monthList;
+  data.totalEleNum = monthElecQuantity.dataInfo.totalEleNum;
+  data.totalEleCost = monthElecQuantity.dataInfo.totalEleCost;
+  client.on('connect', () => {
+    console.log('Connected')
+  //   console.log(data)
+    client.publish(topic, JSON.stringify(data), { qos: 0, retain: false }, (error) => {
+      if (error) {
+        console.error(error)
+      }
+    })
+  })
+  
+  setTimeout(()=>{
+      client.end()
+  },5000)
+  
+  await new Promise((resolve, reject) => {
+      setTimeout(() => resolve("done!"), 5000)
+    });
+  }
+// async function sendMsg(e, o, r, s) {
+//   const n = s?.['open-url'] || s?.openUrl || s?.$open || s?.url,
+//     t = s?.['media-url'] || s?.mediaUrl || s?.$media;
+//   isNode()
+//     ? ((r += n ? `\n点击跳转: ${n}` : ''),
+//       (r += t ? `\n多媒体: ${t}` : ''),
+//       console.log(`${e}\n${o}\n${r}\n`),
+//       await Notify.sendNotify(`${e}\n${o}`, r))
+//     : notify(e, o, r, s);
+// }
 (async () => {
   if ((await showNotice(), !USERNAME || !PASSWORD))
     return sendMsg(
@@ -1660,7 +1739,9 @@ async function sendMsg(e, o, r, s) {
       s.forEach((e, o) => {
         Number(e.dayElePq) && (a += `\n${e.day}用电: ${e.dayElePq}度⚡`);
       }),
-      await sendMsg(SCRIPTNAME, '', a);
+      console.log(monthElecQuantity)
+      // await sendMsg(SCRIPTNAME, '', a);
+      await sendMsg(SCRIPTNAME,eleBill,s, monthElecQuantity);
   }
 })()
   .catch(e => {
