@@ -1,17 +1,36 @@
+/******************************************
+ * @name 网上国网🌏
+ * @channel https://t.me/yqc_123/
+ * @feedback https://t.me/NobyDa_Chat
+ * @author 𝒀𝒖𝒉𝒆𝒏𝒈
+ * @update 20240806
+ * @version 1.3.0
+ *****************************************
+ 修改适配homeassistant，发送mqtt消息
+ *****************************************
+脚本声明:
+1. 本脚本仅用于学习研究，禁止用于商业用途
+2. 本脚本不保证准确性、可靠性、完整性和及时性
+3. 任何个人或组织均可无需经过通知而自由使用
+4. 作者对任何脚本问题概不负责，包括由此产生的任何损失
+5. 如果任何单位或个人认为该脚本可能涉嫌侵犯其权利，应及时通知并提供身份证明、所有权证明，我将在收到认证文件确认后删除
+6. 请勿将本脚本用于商业用途，由此引起的问题与作者无关
+7. 本脚本及其更新版权归作者所有
+ ******************************************/
 const getEnv = () =>
-    'undefined' != typeof $environment && $environment['surge-version']
-      ? 'Surge'
-      : 'undefined' != typeof $environment && $environment['stash-version']
+  'undefined' != typeof $environment && $environment['surge-version']
+    ? 'Surge'
+    : 'undefined' != typeof $environment && $environment['stash-version']
       ? 'Stash'
       : eval('typeof process !== "undefined"')
-      ? 'Node.js'
-      : 'undefined' != typeof $task
-      ? 'Quantumult X'
-      : 'undefined' != typeof $loon
-      ? 'Loon'
-      : 'undefined' != typeof $rocket
-      ? 'Shadowrocket'
-      : void 0,
+        ? 'Node.js'
+        : 'undefined' != typeof $task
+          ? 'Quantumult X'
+          : 'undefined' != typeof $loon
+            ? 'Loon'
+            : 'undefined' != typeof $rocket
+              ? 'Shadowrocket'
+              : void 0,
   isSurge = () => 'Surge' === getEnv(),
   isLoon = () => 'Loon' === getEnv(),
   isStash = () => 'Stash' === getEnv(),
@@ -29,7 +48,7 @@ class Logger {
     this.levels.indexOf(e) >= this.currentLevelIndex &&
       console.log(
         `${this.prefix ? `[${this.prefix}] ` : ''}[${e.toUpperCase()}]\n` +
-          [...o].join('\n')
+        [...o].join('\n')
       );
   }
   trace(...e) {
@@ -58,7 +77,7 @@ const request$1 = async (request = {} || '', option = {}) => {
   }
   request.method ||
     ((request.method = 'GET'),
-    (request.body ?? request.bodyBytes) && (request.method = 'POST')),
+      (request.body ?? request.bodyBytes) && (request.method = 'POST')),
     delete request.headers?.['Content-Length'],
     delete request.headers?.['content-length'];
   const method = request.method.toLocaleLowerCase();
@@ -71,16 +90,16 @@ const request$1 = async (request = {} || '', option = {}) => {
       return (
         delete request.id,
         request.policy &&
-          (isLoon() && (request.node = request.policy),
+        (isLoon() && (request.node = request.policy),
           isStash() &&
-            (request.headers || (request.headers = {}),
+          (request.headers || (request.headers = {}),
             (request.headers['X-Stash-Selected-Proxy'] = encodeURI(
               request.policy
             )))),
         ArrayBuffer.isView(request.body) && (request['binary-mode'] = !0),
         request?.timeout &&
-          isSurge() &&
-          (request.timeout = Number(request.timeout) / 1e3),
+        isSurge() &&
+        (request.timeout = Number(request.timeout) / 1e3),
         await new Promise((e, o) => {
           $httpClient[method](request, (r, s, n) => {
             r
@@ -88,7 +107,7 @@ const request$1 = async (request = {} || '', option = {}) => {
               : ((s.ok = /^2\d\d$/.test(s.status)),
                 (s.statusCode = s.status),
                 n &&
-                  ((s.body = n),
+                ((s.body = n),
                   1 == request['binary-mode'] && (s.bodyBytes = n)),
                 e(s));
           });
@@ -96,11 +115,11 @@ const request$1 = async (request = {} || '', option = {}) => {
       );
     case 'Quantumult X':
       switch (
-        (delete request.scheme,
+      (delete request.scheme,
         delete request.sessionIndex,
         delete request.charset,
         request.policy &&
-          (request.opts || (request.opts = {}),
+        (request.opts || (request.opts = {}),
           (request.opts.policy = request.policy)),
         (
           request?.headers?.['Content-Type'] ??
@@ -118,10 +137,10 @@ const request$1 = async (request = {} || '', option = {}) => {
         case 'application/octet-stream':
           delete request.body,
             ArrayBuffer.isView(request.bodyBytes) &&
-              (request.bodyBytes = request.bodyBytes.buffer.slice(
-                request.bodyBytes.byteOffset,
-                request.bodyBytes.byteLength + request.bodyBytes.byteOffset
-              ));
+            (request.bodyBytes = request.bodyBytes.buffer.slice(
+              request.bodyBytes.byteOffset,
+              request.bodyBytes.byteLength + request.bodyBytes.byteOffset
+            ));
         case void 0:
       }
       return await Promise.race([
@@ -158,9 +177,9 @@ class Store {
   constructor(NAMESPACE) {
     if (
       ((this.env = getEnv()),
-      (this.Store = './store'),
-      NAMESPACE && (this.Store = `./store/${NAMESPACE}`),
-      'Node.js' === this.env)
+        (this.Store = './store'),
+        NAMESPACE && (this.Store = `./store/${NAMESPACE}`),
+        'Node.js' === this.env)
     ) {
       const { LocalStorage: LocalStorage } = eval(
         'require("node-localstorage")'
@@ -215,120 +234,120 @@ class Store {
   }
 }
 const notify = (e = '', o = '', r = '', s = {}) => {
-    const n = e => {
-      const { $open: o, $copy: r, $media: s, $mediaMime: n } = e;
-      switch (typeof e) {
-        case void 0:
-          return e;
-        case 'string':
-          switch (getEnv()) {
-            case 'Surge':
-            case 'Stash':
-            default:
-              return { url: e };
-            case 'Loon':
-            case 'Shadowrocket':
-              return e;
-            case 'Quantumult X':
-              return { 'open-url': e };
-            case 'Node.js':
-              return;
-          }
-        case 'object':
-          switch (getEnv()) {
-            case 'Surge':
-            case 'Stash':
-            case 'Shadowrocket':
-            default: {
-              const t = {};
-              let c = e.openUrl || e.url || e['open-url'] || o;
-              c && Object.assign(t, { action: 'open-url', url: c });
-              let a = e['update-pasteboard'] || e.updatePasteboard || r;
-              if (
-                (a && Object.assign(t, { action: 'clipboard', text: a }), s)
-              ) {
-                let e, o, r;
-                if (s.startsWith('http')) e = s;
-                else if (s.startsWith('data:')) {
-                  const [e] = s.split(';'),
-                    [, n] = s.split(',');
-                  (o = n), (r = e.replace('data:', ''));
-                } else {
-                  (o = s),
-                    (r = (e => {
-                      const o = {
-                        JVBERi0: 'application/pdf',
-                        R0lGODdh: 'image/gif',
-                        R0lGODlh: 'image/gif',
-                        iVBORw0KGgo: 'image/png',
-                        '/9j/': 'image/jpg',
-                      };
-                      for (var r in o) if (0 === e.indexOf(r)) return o[r];
-                      return null;
-                    })(s));
-                }
-                Object.assign(t, {
-                  'media-url': e,
-                  'media-base64': o,
-                  'media-base64-mime': n ?? r,
-                });
+  const n = e => {
+    const { $open: o, $copy: r, $media: s, $mediaMime: n } = e;
+    switch (typeof e) {
+      case void 0:
+        return e;
+      case 'string':
+        switch (getEnv()) {
+          case 'Surge':
+          case 'Stash':
+          default:
+            return { url: e };
+          case 'Loon':
+          case 'Shadowrocket':
+            return e;
+          case 'Quantumult X':
+            return { 'open-url': e };
+          case 'Node.js':
+            return;
+        }
+      case 'object':
+        switch (getEnv()) {
+          case 'Surge':
+          case 'Stash':
+          case 'Shadowrocket':
+          default: {
+            const t = {};
+            let c = e.openUrl || e.url || e['open-url'] || o;
+            c && Object.assign(t, { action: 'open-url', url: c });
+            let a = e['update-pasteboard'] || e.updatePasteboard || r;
+            if (
+              (a && Object.assign(t, { action: 'clipboard', text: a }), s)
+            ) {
+              let e, o, r;
+              if (s.startsWith('http')) e = s;
+              else if (s.startsWith('data:')) {
+                const [e] = s.split(';'),
+                  [, n] = s.split(',');
+                (o = n), (r = e.replace('data:', ''));
+              } else {
+                (o = s),
+                  (r = (e => {
+                    const o = {
+                      JVBERi0: 'application/pdf',
+                      R0lGODdh: 'image/gif',
+                      R0lGODlh: 'image/gif',
+                      iVBORw0KGgo: 'image/png',
+                      '/9j/': 'image/jpg',
+                    };
+                    for (var r in o) if (0 === e.indexOf(r)) return o[r];
+                    return null;
+                  })(s));
               }
-              return (
-                Object.assign(t, {
-                  'auto-dismiss': e['auto-dismiss'],
-                  sound: e.sound,
-                }),
-                t
-              );
+              Object.assign(t, {
+                'media-url': e,
+                'media-base64': o,
+                'media-base64-mime': n ?? r,
+              });
             }
-            case 'Loon': {
-              const r = {};
-              let n = e.openUrl || e.url || e['open-url'] || o;
-              n && Object.assign(r, { openUrl: n });
-              let t = e.mediaUrl || e['media-url'];
-              return (
-                s?.startsWith('http') && (t = s),
-                t && Object.assign(r, { mediaUrl: t }),
-                console.log(JSON.stringify(r)),
-                r
-              );
-            }
-            case 'Quantumult X': {
-              const n = {};
-              let t = e['open-url'] || e.url || e.openUrl || o;
-              t && Object.assign(n, { 'open-url': t });
-              let c = e['media-url'] || e.mediaUrl;
-              s?.startsWith('http') && (c = s),
-                c && Object.assign(n, { 'media-url': c });
-              let a = e['update-pasteboard'] || e.updatePasteboard || r;
-              return (
-                a && Object.assign(n, { 'update-pasteboard': a }),
-                console.log(JSON.stringify(n)),
-                n
-              );
-            }
-            case 'Node.js':
-              return;
+            return (
+              Object.assign(t, {
+                'auto-dismiss': e['auto-dismiss'],
+                sound: e.sound,
+              }),
+              t
+            );
           }
-        default:
-          return;
-      }
-    };
-    switch (getEnv()) {
-      case 'Surge':
-      case 'Loon':
-      case 'Stash':
-      case 'Shadowrocket':
+          case 'Loon': {
+            const r = {};
+            let n = e.openUrl || e.url || e['open-url'] || o;
+            n && Object.assign(r, { openUrl: n });
+            let t = e.mediaUrl || e['media-url'];
+            return (
+              s?.startsWith('http') && (t = s),
+              t && Object.assign(r, { mediaUrl: t }),
+              console.log(JSON.stringify(r)),
+              r
+            );
+          }
+          case 'Quantumult X': {
+            const n = {};
+            let t = e['open-url'] || e.url || e.openUrl || o;
+            t && Object.assign(n, { 'open-url': t });
+            let c = e['media-url'] || e.mediaUrl;
+            s?.startsWith('http') && (c = s),
+              c && Object.assign(n, { 'media-url': c });
+            let a = e['update-pasteboard'] || e.updatePasteboard || r;
+            return (
+              a && Object.assign(n, { 'update-pasteboard': a }),
+              console.log(JSON.stringify(n)),
+              n
+            );
+          }
+          case 'Node.js':
+            return;
+        }
       default:
-        $notification.post(e, o, r, n(s));
-        break;
-      case 'Quantumult X':
-        $notify(e, o, r, n(s));
-      case 'Node.js':
+        return;
     }
-    let t = ['', '==============📣系统通知📣=============='];
-    t.push(e), o && t.push(o), r && t.push(r), console.log(t.join('\n'));
-  },
+  };
+  switch (getEnv()) {
+    case 'Surge':
+    case 'Loon':
+    case 'Stash':
+    case 'Shadowrocket':
+    default:
+      $notification.post(e, o, r, n(s));
+      break;
+    case 'Quantumult X':
+      $notify(e, o, r, n(s));
+    case 'Node.js':
+  }
+  let t = ['', '==============📣系统通知📣=============='];
+  t.push(e), o && t.push(o), r && t.push(r), console.log(t.join('\n'));
+},
   done = (e = {}) => {
     switch (getEnv()) {
       case 'Surge':
@@ -348,10 +367,10 @@ const notify = (e = '', o = '', r = '', s = {}) => {
   request = async e => {
     try {
       const o = {
-          url: `${SERVER_HOST}/wsgw/encrypt`,
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ yuheng: e }),
-        },
+        url: `${SERVER_HOST}/wsgw/encrypt`,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ yuheng: e }),
+      },
         r = await Encrypt(o);
       switch (e.url) {
         case '/api/oauth2/oauth/authorize':
@@ -363,7 +382,7 @@ const notify = (e = '', o = '', r = '', s = {}) => {
       let { body: s } = await request$1(r);
       try {
         s = JSON.parse(s);
-      } catch {}
+      } catch { }
       if (
         s.code &&
         (10010 == s.code ||
@@ -390,7 +409,7 @@ const notify = (e = '', o = '', r = '', s = {}) => {
     request$1(e).then(({ body: e }) => {
       try {
         e = JSON.parse(e);
-      } catch {}
+      } catch { }
       return (
         (e.data.url = BASE_URL + e.data.url),
         (e.data.body = JSON.stringify(e.data.data)),
@@ -417,8 +436,8 @@ const notify = (e = '', o = '', r = '', s = {}) => {
             30010 === s ||
             (10002 === s && 'WEB渠道KeyCode已失效' == n) ||
             (10002 === s && bizrt.token && 'Token 为空！' == n))
-        ? Promise.reject(`重新获取: ${n}`)
-        : Promise.reject(n);
+          ? Promise.reject(`重新获取: ${n}`)
+          : Promise.reject(n);
     }),
   Recoginze = async e => {
     const o = {
@@ -1229,19 +1248,19 @@ const notify = (e = '', o = '', r = '', s = {}) => {
     'undefined' != typeof globalThis
       ? globalThis
       : 'undefined' != typeof window
-      ? window
-      : 'undefined' != typeof global
-      ? global
-      : 'undefined' != typeof self
-      ? self
-      : {};
+        ? window
+        : 'undefined' != typeof global
+          ? global
+          : 'undefined' != typeof self
+            ? self
+            : {};
 Global.bizrt = jsonParse(store.get('95598_bizrt')) || {};
 const log = new Logger(
-    SCRIPTNAME,
-    isTrue(isNode() ? process.env.WSGW_LOG_DEBUG : store.get('95598_log_debug'))
-      ? 'debug'
-      : 'info'
-  ),
+  SCRIPTNAME,
+  isTrue(isNode() ? process.env.WSGW_LOG_DEBUG : store.get('95598_log_debug'))
+    ? 'debug'
+    : 'info'
+),
   USERNAME =
     (isNode() ? process.env.WSGW_USERNAME : store.get('95598_username')) || '',
   PASSWORD =
@@ -1271,16 +1290,16 @@ async function getVerifyCode() {
   console.log('⏳ 获取验证码...');
   try {
     const e = {
-        url: `/api${$api.loginVerifyCodeNew}`,
-        method: 'post',
-        data: {
-          password: PASSWORD,
-          account: USERNAME,
-          canvasHeight: 200,
-          canvasWidth: 310,
-        },
-        headers: { ...requestKey },
+      url: `/api${$api.loginVerifyCodeNew}`,
+      method: 'post',
+      data: {
+        password: PASSWORD,
+        account: USERNAME,
+        canvasHeight: 200,
+        canvasWidth: 310,
       },
+      headers: { ...requestKey },
+    },
       o = await request(e);
     log.info('✅ 获取验证码凭证成功'), log.debug(`🔑 验证码凭证: ${o.ticket}`);
     const { data: r } = await Recoginze(o.canvasSrc);
@@ -1299,32 +1318,32 @@ async function login(e, o) {
   console.log('⏳ 登录中...');
   try {
     const r = {
-        url: `/api${$api.loginTestCodeNew}`,
-        method: 'post',
-        headers: { ...requestKey },
-        data: {
-          loginKey: e,
-          code: o,
-          params: {
-            uscInfo: {
-              devciceIp: '',
-              tenant: 'state_grid',
-              member: '0902',
-              devciceId: '',
-            },
-            quInfo: {
-              optSys: 'android',
-              pushId: '000000',
-              addressProvince: '110100',
-              password: PASSWORD,
-              addressRegion: '110101',
-              account: USERNAME,
-              addressCity: '330100',
-            },
+      url: `/api${$api.loginTestCodeNew}`,
+      method: 'post',
+      headers: { ...requestKey },
+      data: {
+        loginKey: e,
+        code: o,
+        params: {
+          uscInfo: {
+            devciceIp: '',
+            tenant: 'state_grid',
+            member: '0902',
+            devciceId: '',
           },
-          Channels: 'web',
+          quInfo: {
+            optSys: 'android',
+            pushId: '000000',
+            addressProvince: '110100',
+            password: PASSWORD,
+            addressRegion: '110101',
+            account: USERNAME,
+            addressCity: '330100',
+          },
         },
+        Channels: 'web',
       },
+    },
       { bizrt: s } = await request(r);
     if (!(s?.userInfo?.length > 0))
       return Promise.reject('登录失败: 请检查信息填写是否正确! ');
@@ -1347,10 +1366,10 @@ async function getAuthcode() {
   console.log('⏳ 获取授权码...');
   try {
     const e = {
-        url: `/api${$api.getAuth}`,
-        method: 'post',
-        headers: { ...requestKey, token: bizrt.token },
-      },
+      url: `/api${$api.getAuth}`,
+      method: 'post',
+      headers: { ...requestKey, token: bizrt.token },
+    },
       { redirect_url: o } = await request(e);
     (Global.authorizecode = o.split('?code=')[1]),
       log.info('✅ 获取授权码成功'),
@@ -1462,7 +1481,7 @@ async function getDayElecQuantity(e) {
   try {
     const o = bindInfo.powerUserList[e],
       [r] = bizrt.userInfo,
-      s = getBeforeDate(6),
+      s = getBeforeDate(8),
       n = getBeforeDate(1),
       t = {
         url: `/api${$api.busInfoApi}`,
@@ -1581,28 +1600,88 @@ async function doLogin() {
   await login(o, e);
 }
 async function showNotice() {
-  console.log(''),
-    console.log('1. 本脚本仅用于学习研究，禁止用于商业用途'),
-    console.log('2. 本脚本不保证准确性、可靠性、完整性和及时性'),
-    console.log('3. 任何个人或组织均可无需经过通知而自由使用'),
-    console.log('4. 作者对任何脚本问题概不负责，包括由此产生的任何损失'),
-    console.log(
-      '5. 如果任何单位或个人认为该脚本可能涉嫌侵犯其权利，应及时通知并提供身份证明、所有权证明，我将在收到认证文件确认后删除'
-    ),
-    console.log('6. 请勿将本脚本用于商业用途，由此引起的问题与作者无关'),
-    console.log('7. 本脚本及其更新版权归作者所有'),
-    console.log('');
+  // console.log(''),
+  //   console.log('1. 本脚本仅用于学习研究，禁止用于商业用途'),
+  //   console.log('2. 本脚本不保证准确性、可靠性、完整性和及时性'),
+  //   console.log('3. 任何个人或组织均可无需经过通知而自由使用'),
+  //   console.log('4. 作者对任何脚本问题概不负责，包括由此产生的任何损失'),
+  //   console.log(
+  //     '5. 如果任何单位或个人认为该脚本可能涉嫌侵犯其权利，应及时通知并提供身份证明、所有权证明，我将在收到认证文件确认后删除'
+  //   ),
+  //   console.log('6. 请勿将本脚本用于商业用途，由此引起的问题与作者无关'),
+  //   console.log('7. 本脚本及其更新版权归作者所有'),
+  console.log('');
 }
-async function sendMsg(e, o, r, s) {
-  const n = s?.['open-url'] || s?.openUrl || s?.$open || s?.url,
-    t = s?.['media-url'] || s?.mediaUrl || s?.$media;
-  isNode()
-    ? ((r += n ? `\n点击跳转: ${n}` : ''),
-      (r += t ? `\n多媒体: ${t}` : ''),
-      console.log(`${e}\n${o}\n${r}\n`),
-      await Notify.sendNotify(`${e}\n${o}`, r))
-    : notify(e, o, r, s);
+function formatDate(dateStr) {
+  // 分割日期字符串
+  var year = dateStr.substring(0, 4);
+  var month = dateStr.substring(4, 6);
+  var day = dateStr.substring(6, 8);
+
+  // 返回格式化的日期字符串
+  return year + '-' + month + (day ? '-' + day  : '');
 }
+// 修改发送mqtt消息至homeassistant
+async function sendMsg(e, eleBill, dayList, monthElecQuantity) {
+  const mqtt = require('mqtt')
+  const host = '192.168.1.7'
+  const port = '1883'
+  const clientId = 'mqtt_qldocker'
+  
+  const connectUrl = `mqtt://${host}:${port}`
+  const client = mqtt.connect(connectUrl, {
+    clientId,
+    clean: true,
+    connectTimeout: 4000,
+    username: 'admin',
+    password: 'mqtt.85410221',
+    reconnectPeriod: 1000,
+  })
+  
+  const topic = 'nodejs/state-grid'
+  let data = eleBill;
+  dayList = dayList.filter(val=>{
+      return val.dayElePq != '-'
+  }).map(val=>{
+      val.day = formatDate(val.day)
+      return val
+  })
+  let monthList = monthElecQuantity.mothEleList.map(val=>{
+      val.month = formatDate(val.month)
+      return val
+  })
+  data.dayList = dayList;
+  data.monthList = monthList;
+  data.totalEleNum = monthElecQuantity.dataInfo.totalEleNum;
+  data.totalEleCost = monthElecQuantity.dataInfo.totalEleCost;
+  client.on('connect', () => {
+    console.log('Connected')
+  //   console.log(data)
+    client.publish(topic, JSON.stringify(data), { qos: 0, retain: false }, (error) => {
+      if (error) {
+        console.error(error)
+      }
+    })
+  })
+  
+  setTimeout(()=>{
+      client.end()
+  },5000)
+  
+  await new Promise((resolve, reject) => {
+      setTimeout(() => resolve("done!"), 5000)
+    });
+  }
+// async function sendMsg(e, o, r, s) {
+//   const n = s?.['open-url'] || s?.openUrl || s?.$open || s?.url,
+//     t = s?.['media-url'] || s?.mediaUrl || s?.$media;
+//   isNode()
+//     ? ((r += n ? `\n点击跳转: ${n}` : ''),
+//       (r += t ? `\n多媒体: ${t}` : ''),
+//       console.log(`${e}\n${o}\n${r}\n`),
+//       await Notify.sendNotify(`${e}\n${o}`, r))
+//     : notify(e, o, r, s);
+// }
 (async () => {
   if ((await showNotice(), !USERNAME || !PASSWORD))
     return sendMsg(
@@ -1620,13 +1699,13 @@ async function sendMsg(e, o, r, s) {
     await getAccessToken(),
     await getBindInfo(),
     isTrue(NOTIFY_TYPE) ||
-      ((bindInfo.powerUserList = bindInfo.powerUserList.filter(
-        e => '1' === e.isDefault
-      )),
+    ((bindInfo.powerUserList = bindInfo.powerUserList.filter(
+      e => '1' === e.isDefault
+    )),
       bindInfo.powerUserList.length > 1 &&
-        (bindInfo.powerUserList = bindInfo.powerUserList.filter(
-          e => '01' === e.elecTypeCode
-        )));
+      (bindInfo.powerUserList = bindInfo.powerUserList.filter(
+        e => '01' === e.elecTypeCode
+      )));
   for (let e = 0; e < bindInfo.powerUserList.length; e++) {
     await getElcFee(e),
       await getDayElecQuantity(e),
@@ -1644,24 +1723,25 @@ async function sendMsg(e, o, r, s) {
       eleBill.sumMoney && (a += `  账户余额: ${c}元`),
       (a += `\n截至日期: ${eleBill.date}`),
       r.totalEleNum &&
-        r.totalEleCost &&
-        (a += `\n年度用电: ${r.totalEleNum}度  累计花费: ${r.totalEleCost}元`),
+      r.totalEleCost &&
+      (a += `\n年度用电: ${r.totalEleNum}度  累计花费: ${r.totalEleCost}元`),
       isTrue(SHOW_RECENT) ||
-        (eleBill.dayNum
-          ? (a += `\n预计可用: ${eleBill.dayNum}天`)
-          : eleBill.prepayBal && (a += `\n预存电费: ${eleBill.prepayBal}元`)),
+      (eleBill.dayNum
+        ? (a += `\n预计可用: ${eleBill.dayNum}天`)
+        : eleBill.prepayBal && (a += `\n预存电费: ${eleBill.prepayBal}元`)),
       o.consNo_dst &&
-        (a += `\n户号信息: ${o.consNo_dst}${
-          o.consName_dst ? `|${o.consName_dst}` : ''
+      (a += `\n户号信息: ${o.consNo_dst}${o.consName_dst ? `|${o.consName_dst}` : ''
         }`),
       o.orgName && (a += `\n供电单位: ${o.orgName}`),
       o.elecAddr_dst && (a += `\n用电地址: ${o.elecAddr_dst}`),
       n && (a += `\n五日用电: ${n}度`),
       isTrue(SHOW_RECENT) &&
-        s.forEach((e, o) => {
-          Number(e.dayElePq) && (a += `\n${e.day}用电: ${e.dayElePq}度⚡`);
-        }),
-      await sendMsg(SCRIPTNAME, '', a);
+      s.forEach((e, o) => {
+        Number(e.dayElePq) && (a += `\n${e.day}用电: ${e.dayElePq}度⚡`);
+      }),
+      console.log(monthElecQuantity)
+      // await sendMsg(SCRIPTNAME, '', a);
+      await sendMsg(SCRIPTNAME,eleBill,s, monthElecQuantity);
   }
 })()
   .catch(e => {
