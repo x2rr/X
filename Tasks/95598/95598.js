@@ -1627,14 +1627,8 @@ async function sendMsg(e, eleBill, dayList, monthElecQuantity) {
     (isNode() ? process.env.WSGW_mqtt_host : store.get('95598_mqtt_host')) || '',
     port =
       (isNode() ? process.env.WSGW_mqtt_port : store.get('95598_mqtt_port')) || '',
-    mqtt_username = isTrue(
-      isNode()
-        ? process.env.WSGW_mqtt_username
-        : store.get('95598_mqtt_username')
-    ),
-    mqtt_password = isNode()
-      ? process.env.WSGW_mqtt_password
-      : store.get('95598_mqtt_password');
+    mqtt_username =  (isNode() ? process.env.WSGW_mqtt_username : store.get('95598_mqtt_username')) || '',
+    mqtt_password =  (isNode() ? process.env.WSGW_mqtt_password : store.get('95598_mqtt_password')) || '';
 
   const mqtt = require('mqtt')
   const clientId = 'mqtt_qldocker'
